@@ -9,7 +9,7 @@ with open(os.environ["GITHUB_EVENT_PATH"], "r") as f:
     event = json.load(f)
 
 event_type = os.environ["GITHUB_EVENT_NAME"]
-model = GenerativeModel("gemini-1.5-flash")
+model = GenerativeModel("gemini-2.0-flash")
 headers = {
     "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
     "Accept": "application/vnd.github+json"
