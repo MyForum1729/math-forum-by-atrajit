@@ -7,7 +7,7 @@ from string import Template
 def send_email(user, content, link, flagged, type_name, type_icon):
     sender = os.environ["EMAIL_USER"]
     password = os.environ["EMAIL_PASS"]
-    recipient = sender
+    recipient = os.environ["EMAIL_RECIPIENTS"]
 
     context = {
         "user": user,
