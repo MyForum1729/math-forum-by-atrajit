@@ -51,7 +51,8 @@ if event_type == "discussion_comment":
 
     if flagged:
         print("Flagged comment. Deleting.")
-        url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/discussion_comments/{comment_id}"
+        url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/discussions/comments/{comment_id}"
+
         requests.delete(url, headers=headers)
 
     send_email(user, comment, comment_url, flagged, "Comment", "📝")
