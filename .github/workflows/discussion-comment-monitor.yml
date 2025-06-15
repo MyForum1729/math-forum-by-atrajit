@@ -25,4 +25,5 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
         run: python moderation/check_comment.py "${{ github.event.comment.body }}" "${{ github.event.comment.user.login }}" "${{ github.event.discussion.html_url }}" "${{ github.event.comment.node_id }}" "${{ github.repository }}"
