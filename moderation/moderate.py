@@ -1,15 +1,40 @@
 import os
 import json
 import requests
-from google.generativeai import GenerativeModel
 from email_alert import send_email
 
-# Load event payload
+# ========== Gemini Config ==========
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
+GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+
+def check_inappropriate(content: str) -> bool:
+    payload = {
+        "contents": [
+            {
+                "parts": [{"text": content}]
+            }
+        ]
+    }
+
+    response = requests.post(
+        GEMINI_API_URL,
+        headers={"Content-Type": "application/json"},
+        json=payload
+    )
+
+    if response.status_code != 200:
+        print("Gemini API Error:", response.text)
+        return False
+
+    result_text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+    print("Gemini moderation response:", result_text)
+    return "yes" in result_text.lower()
+
+# ========== GitHub Event Parsing ==========
 with open(os.environ["GITHUB_EVENT_PATH"], "r") as f:
     event = json.load(f)
 
 event_type = os.environ["GITHUB_EVENT_NAME"]
-model = GenerativeModel("gemini-2.0-flash")
 headers = {
     "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
     "Accept": "application/vnd.github+json"
@@ -20,11 +45,9 @@ if event_type == "discussion_comment":
     user = event["comment"]["user"]["login"]
     comment_url = event["comment"]["html_url"]
     comment_id = event["comment"]["id"]
-    discussion_id = event["discussion"]["node_id"]
 
     prompt = f"Is the following comment disrespectful, harassing, or sexually inappropriate?\n\n\"{comment}\""
-
-    flagged = "yes" in model.generate_content(prompt).text.lower()
+    flagged = check_inappropriate(prompt)
 
     if flagged:
         print("Flagged comment. Deleting.")
@@ -40,9 +63,8 @@ elif event_type == "discussion":
     discussion_url = event["discussion"]["html_url"]
     discussion_node_id = event["discussion"]["node_id"]
 
-    prompt = f"Is the following discussion title and content inappropriate, disrespectful, harassing, or sexually offensive?\n\nTitle: \"{title}\"\n\nContent:\n{body}"
-
-    flagged = "yes" in model.generate_content(prompt).text.lower()
+    prompt = f"Is the following discussion title and content inappropriate, disrespectful, harassing, or sexually offensive?\n\nTitle: \"{title}\"\n\nContent:\n{body}\""
+    flagged = check_inappropriate(prompt)
 
     if flagged:
         print("Flagged discussion. Deleting.")
